@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🔍 IT Profiles Pro - MERN Stack</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    /* Estilo para el loader */
+    #loader { display: none; }
+    #loader.active { display: flex; }
+  </style>
+</head>
+<body class="bg-gray-900 text-gray-100 transition-colors duration-300 min-h-screen">
+
+  <nav class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800 sticky top-0 z-40">
+    <h1 class="text-xl font-bold text-blue-400"><i class="fas fa-code-branch mr-2"></i>IT Profiles</h1>
+    
+    <div class="flex items-center gap-4">
+      <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-700 transition-colors">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+      
+      <div id="authContainer" class="flex gap-2">
+        <button id="openLoginBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-bold transition-all">
+          <i class="fas fa-sign-in-alt mr-2"></i>Login
+        </button>
+        <button id="logoutBtn" class="hidden bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-bold transition-all">
+          Salir
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container mx-auto px-4 py-8">
+    
+    <section class="bg-gray-800 p-6 rounded-xl shadow-lg mb-8 border border-gray-700">
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <input id="searchInput" type="text" placeholder="Buscar por nombre o título..." 
+          class="md:col-span-2 bg-gray-700 border-none rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none" />
+        
+        <select id="categoryFilter" class="bg-gray-700 border-none rounded-lg p-3 outline-none">
+          <option value="">Todas las categorías</option>
+          <option value="Frontend">Frontend</option>
+          <option value="Backend">Backend</option>
+          <option value="Data">Data</option>
+        </select>
+        
+        <select id="seniorityFilter" class="bg-gray-700 border-none rounded-lg p-3 outline-none">
+          <option value="">Todos los niveles</option>
+          <option value="Junior">Junior</option>
+          <option value="Semi Senior">Semi Senior</option>
+          <option value="Senior">Senior</option>
+        </select>
+
+        <button id="addProfileBtn" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg hidden transition-all">
+          <i class="fas fa-plus mr-2"></i>Nuevo Perfil
+        </button>
+      </div>
+      <div class="mt-4 flex justify-end">
+          <button id="clearFilters" class="text-sm text-gray-400 hover:text-white underline">Limpiar filtros</button>
+      </div>
+    </section>
+
+    <div id="profilesContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      </div>
+
+    <div id="loader" class="fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+    </div>
+  </main>
+
+  <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50">
+    <div class="bg-gray-800 p-8 rounded-xl w-full max-w-sm border border-gray-700 shadow-2xl">
+      <h2 class="text-2xl font-bold mb-6 text-center text-white">Área Administrativa</h2>
+      <div class="space-y-4">
+        <input type="email" id="loginEmail" placeholder="Email (admin@admin.com)" class="w-full p-3 bg-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="password" id="loginPass" placeholder="Contraseña (123456)" class="w-full p-3 bg-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+        <button id="doLogin" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-bold text-white transition-colors">Entrar</button>
+        <button id="closeLogin" class="w-full text-gray-400 hover:text-white text-sm">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="profileModal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50">
+    <div class="bg-gray-800 p-8 rounded-xl w-full max-w-md border border-gray-700">
+      <h2 id="modalTitle" class="text-2xl font-bold mb-6 text-blue-400">Editar Perfil</h2>
+      
+      <input type="hidden" id="profileId" />
+      
+      <div class="space-y-4">
+        <input type="text" id="nameInput" placeholder="Nombre completo" class="w-full p-3 bg-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="text" id="titleInput" placeholder="Título (ej: Senior React Dev)" class="w-full p-3 bg-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+        
+        <div class="grid grid-cols-2 gap-4">
+          <select id="categoryInput" class="p-3 bg-gray-700 rounded-lg outline-none">
+            <option value="Frontend">Frontend</option>
+            <option value="Backend">Backend</option>
+            <option value="Data">Data</option>
+          </select>
+          <select id="seniorityInput" class="p-3 bg-gray-700 rounded-lg outline-none">
+            <option value="Junior">Junior</option>
+            <option value="Semi Senior">Semi Senior</option>
+            <option value="Senior">Senior</option>
+          </select>
+        </div>
+        
+        <input type="text" id="avatarInput" placeholder="URL de la imagen (Avatar)" class="w-full p-3 bg-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <div class="flex justify-end gap-3 mt-8">
+        <button class="close-modal px-4 py-2 text-gray-400 hover:text-white transition-colors">Cancelar</button>
+        <button id="saveProfile" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-bold">Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+/* Avatar redondo */
+.avatar img {
+  border-radius: 50%;
+  border: 2px solid #dbdbdb;
+}
+
+/* Cards más elegantes */
+.profile-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* Modal más suave */
+.modal-card {
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .column.is-4 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .box.has-background-primary-light {
+    padding: 1rem;
+  }
+
+  .box.has-background-primary-light .column {
+    padding-bottom: 0.75rem;
+  }
+
+  .box.has-background-primary-light .button {
+    height: 3rem;
+    font-weight: 600;
+  }
+}
+@media (max-width: 768px) {
+  .modal-card {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .modal-card-body {
+    overflow-y: auto;
+  }
+}
