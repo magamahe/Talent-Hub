@@ -24,7 +24,7 @@ const app = express();
 
 // Para producción: limitar a tu frontend
 app.use(cors({
-  origin: 'https://talent-hub-zxqo.onrender.com',
+  origin: 'https://talent-hub-0n2p.onrender.com', // tu frontend
   credentials: true
 }));
 
