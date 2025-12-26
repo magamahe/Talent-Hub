@@ -21,37 +21,31 @@ let onSuccessCallback = null;
 // ==========================================
 // FUNCIONES DEL MODAL
 // ==========================================
-export function abrirModalNuevo(onSuccess, token) {
+export function abrirModalNuevo(onSuccess) {
   onSuccessCallback = onSuccess;
   if (modalTitle) modalTitle.textContent = 'Nuevo Perfil';
 
-  // Limpiar inputs
   [profileIdInput, nameInput, titleInput, categoryInput, seniorityInput, avatarInput].forEach(input => {
     if (input) input.value = '';
   });
 
   modal?.classList.remove('hidden');
   modal?.classList.add('flex');
-
-  // Guardar token para la creación
-  saveBtn.dataset.token = token || '';
 }
 
-export function abrirModalEditar(perfil, onSuccess, token) {
+export function abrirModalEditar(perfil, onSuccess) {
   onSuccessCallback = onSuccess;
   if (modalTitle) modalTitle.textContent = 'Editar Perfil';
 
   if (profileIdInput) profileIdInput.value = perfil._id || perfil.id;
   if (nameInput) nameInput.value = perfil.name || '';
   if (titleInput) titleInput.value = perfil.title || '';
-  if (categoryInput) categoryInput.value = perfil.category || '';
-  if (seniorityInput) seniorityInput.value = perfil.level || '';
+  if (categoryInput) categoryInput.value = perfil.category?._id || perfil.category || '';
+  if (seniorityInput) seniorityInput.value = perfil.level?._id || perfil.level || '';
   if (avatarInput) avatarInput.value = perfil.avatar || '';
 
   modal?.classList.remove('hidden');
   modal?.classList.add('flex');
-
-  saveBtn.dataset.token = token || '';
 }
 
 export function cerrarModal() {
@@ -78,22 +72,20 @@ async function guardarPerfil() {
     return;
   }
 
-  const token = saveBtn.dataset.token;
-
   try {
     mostrarLoader();
     const id = profileIdInput.value;
 
     if (id) {
-      await actualizarPerfil(id, perfil, token);
+      await actualizarPerfil(id, perfil);
     } else {
-      await crearPerfil(perfil, token);
+      await crearPerfil(perfil);
     }
 
     cerrarModal();
     if (onSuccessCallback) onSuccessCallback();
   } catch (error) {
-    alert("Error al guardar perfil: " + error.message);
+    alert("Error al guardar perfil: " + (error.message || error));
   } finally {
     ocultarLoader();
   }
@@ -101,14 +93,12 @@ async function guardarPerfil() {
 
 export async function borrarPerfil(id, onSuccess) {
   if (!confirm('¿Estás seguro de que deseas eliminar este perfil?')) return;
-  const token = localStorage.getItem('token');
-
   try {
     mostrarLoader();
-    await eliminarPerfil(id, token);
+    await eliminarPerfil(id);
     if (onSuccess) onSuccess();
   } catch (error) {
-    alert("Error al eliminar perfil: " + error.message);
+    alert("Error al eliminar perfil: " + (error.message || error));
   } finally {
     ocultarLoader();
   }
