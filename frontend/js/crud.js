@@ -1,3 +1,4 @@
+// crud.js
 import { crearPerfil, actualizarPerfil, eliminarPerfil } from './api.js';
 import { mostrarLoader, ocultarLoader } from './ui.js';
 
@@ -8,7 +9,6 @@ const modal = document.getElementById('profileModal');
 const modalTitle = document.getElementById('modalTitle');
 const saveBtn = document.getElementById('saveProfile');
 
-// Inputs del Formulario
 const profileIdInput = document.getElementById('profileId');
 const nameInput = document.getElementById('nameInput');
 const titleInput = document.getElementById('titleInput');
@@ -21,36 +21,37 @@ let onSuccessCallback = null;
 // ==========================================
 // FUNCIONES DEL MODAL
 // ==========================================
-
-export function abrirModalNuevo(onSuccess) {
+export function abrirModalNuevo(onSuccess, token) {
   onSuccessCallback = onSuccess;
   if (modalTitle) modalTitle.textContent = 'Nuevo Perfil';
-  
+
   // Limpiar inputs
-  if (profileIdInput) profileIdInput.value = '';
-  [nameInput, titleInput, avatarInput].forEach(input => {
+  [profileIdInput, nameInput, titleInput, categoryInput, seniorityInput, avatarInput].forEach(input => {
     if (input) input.value = '';
   });
 
-  // Mostrar modal (Tailwind)
   modal?.classList.remove('hidden');
   modal?.classList.add('flex');
+
+  // Guardar token para la creación
+  saveBtn.dataset.token = token || '';
 }
 
-export function abrirModalEditar(perfil, onSuccess) {
+export function abrirModalEditar(perfil, onSuccess, token) {
   onSuccessCallback = onSuccess;
   if (modalTitle) modalTitle.textContent = 'Editar Perfil';
 
-  // Llenar datos (MongoDB usa _id)
   if (profileIdInput) profileIdInput.value = perfil._id || perfil.id;
   if (nameInput) nameInput.value = perfil.name || '';
   if (titleInput) titleInput.value = perfil.title || '';
   if (categoryInput) categoryInput.value = perfil.category || '';
-  if (seniorityInput) seniorityInput.value = perfil.seniority || '';
+  if (seniorityInput) seniorityInput.value = perfil.level || '';
   if (avatarInput) avatarInput.value = perfil.avatar || '';
 
   modal?.classList.remove('hidden');
   modal?.classList.add('flex');
+
+  saveBtn.dataset.token = token || '';
 }
 
 export function cerrarModal() {
@@ -61,40 +62,38 @@ export function cerrarModal() {
 // ==========================================
 // LÓGICA CRUD
 // ==========================================
-
 async function guardarPerfil() {
-  // 1. Validar que los elementos existen
   if (!nameInput || !titleInput) return;
 
-  // 2. Crear objeto del perfil
   const perfil = {
     name: nameInput.value.trim(),
     title: titleInput.value.trim(),
     category: categoryInput.value,
-    seniority: seniorityInput.value,
+    level: seniorityInput.value,
     avatar: avatarInput.value.trim() || 'https://i.pravatar.cc/150'
   };
 
-  // 3. Validación simple
-  if (!perfil.name || !perfil.title) {
-    alert("Por favor, completa los campos obligatorios.");
+  if (!perfil.name || !perfil.title || !perfil.category || !perfil.level) {
+    alert("Por favor, completa todos los campos obligatorios.");
     return;
   }
+
+  const token = saveBtn.dataset.token;
 
   try {
     mostrarLoader();
     const id = profileIdInput.value;
 
     if (id) {
-      await actualizarPerfil(id, perfil);
+      await actualizarPerfil(id, perfil, token);
     } else {
-      await crearPerfil(perfil);
+      await crearPerfil(perfil, token);
     }
 
     cerrarModal();
-    if (onSuccessCallback) onSuccessCallback(); // Recarga la lista en el main.js
+    if (onSuccessCallback) onSuccessCallback();
   } catch (error) {
-    alert("Error al guardar: " + error.message);
+    alert("Error al guardar perfil: " + error.message);
   } finally {
     ocultarLoader();
   }
@@ -102,27 +101,23 @@ async function guardarPerfil() {
 
 export async function borrarPerfil(id, onSuccess) {
   if (!confirm('¿Estás seguro de que deseas eliminar este perfil?')) return;
+  const token = localStorage.getItem('token');
 
   try {
     mostrarLoader();
-    await eliminarPerfil(id);
+    await eliminarPerfil(id, token);
     if (onSuccess) onSuccess();
   } catch (error) {
-    alert("Error al eliminar: " + error.message);
+    alert("Error al eliminar perfil: " + error.message);
   } finally {
     ocultarLoader();
   }
 }
 
 // ==========================================
-// INICIALIZACIÓN DE EVENTOS (SEGURO)
+// EVENTOS
 // ==========================================
-
-// Usamos el operador ? para que si el elemento no existe, no tire error
 saveBtn?.addEventListener('click', guardarPerfil);
 
-// Cerramos el modal con cualquier botón que tenga la clase 'close-modal'
 const closeButtons = modal?.querySelectorAll('.close-modal');
-closeButtons?.forEach(btn => {
-  btn.addEventListener('click', cerrarModal);
-});
+closeButtons?.forEach(btn => btn.addEventListener('click', cerrarModal));

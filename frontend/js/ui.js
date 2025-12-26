@@ -1,19 +1,17 @@
-// js/ui.js
-
-// --- Funciones de Estado ---
+// --- Funciones de estado ---
 export function mostrarLoader() {
     const loader = document.getElementById('loader');
-    if (loader) loader.classList.remove('hidden');
+    loader?.classList.remove('hidden');
 }
 
 export function ocultarLoader() {
     const loader = document.getElementById('loader');
-    if (loader) loader.classList.add('hidden');
+    loader?.classList.add('hidden');
 }
 
 export function mostrarMensajeVacio(mostrar) {
     const emptyMessage = document.getElementById('emptyMessage');
-    if (emptyMessage) emptyMessage.classList.toggle('hidden', !mostrar);
+    emptyMessage?.classList.toggle('hidden', !mostrar);
 }
 
 export function limpiarPerfiles() {
@@ -21,11 +19,11 @@ export function limpiarPerfiles() {
     if (container) container.innerHTML = '';
 }
 
-// --- Render de Perfiles ---
+// --- Render de perfiles ---
 export function renderizarPerfiles(perfiles, onEditar, onEliminar) {
     limpiarPerfiles();
     const container = document.getElementById('profilesContainer');
-    if (!container) return; // Si no hay contenedor, no hacemos nada
+    if (!container) return;
 
     if (!perfiles || perfiles.length === 0) {
         mostrarMensajeVacio(true);
@@ -33,8 +31,6 @@ export function renderizarPerfiles(perfiles, onEditar, onEliminar) {
     }
 
     mostrarMensajeVacio(false);
-
-    // Verificar si el usuario está logueado para mostrar botones
     const esAdmin = !!localStorage.getItem('token');
 
     perfiles.forEach(perfil => {
@@ -51,8 +47,8 @@ export function renderizarPerfiles(perfiles, onEditar, onEliminar) {
                     </div>
                 </div>
                 <div class="mt-4 flex gap-2">
-                    <span class="bg-blue-900 text-blue-200 text-xs px-2 py-1 rounded-md font-semibold">${perfil.category}</span>
-                    <span class="bg-amber-900 text-amber-200 text-xs px-2 py-1 rounded-md font-semibold">${perfil.seniority}</span>
+                    <span class="bg-blue-900 text-blue-200 text-xs px-2 py-1 rounded-md font-semibold">${perfil.category?.name || ''}</span>
+                    <span class="bg-amber-900 text-amber-200 text-xs px-2 py-1 rounded-md font-semibold">${perfil.level?.name || ''}</span>
                 </div>
             </div>
             <footer class="flex border-t border-gray-700 ${!esAdmin ? 'hidden' : ''}">
@@ -74,7 +70,7 @@ export function renderizarPerfiles(perfiles, onEditar, onEliminar) {
     });
 }
 
-// --- Lógica de Temas ---
+// --- Lógica de temas ---
 export function setupTheme() {
     const themeBtn = document.getElementById('themeToggle');
     if (!themeBtn) return;

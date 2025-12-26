@@ -19,34 +19,11 @@
   border-radius: 8px;
 }
 
+#loader { display: none; }
+#loader.active { display: flex; }
+
+/* Responsive */
 @media (max-width: 768px) {
-  .column.is-4 {
-    flex: 0 0 100%;
-    max-width: 100%;
-  }
-}
-
-@media (max-width: 768px) {
-  .box.has-background-primary-light {
-    padding: 1rem;
-  }
-
-  .box.has-background-primary-light .column {
-    padding-bottom: 0.75rem;
-  }
-
-  .box.has-background-primary-light .button {
-    height: 3rem;
-    font-weight: 600;
-  }
-}
-@media (max-width: 768px) {
-  .modal-card {
-    width: 95%;
-    max-height: 90vh;
-  }
-
-  .modal-card-body {
-    overflow-y: auto;
-  }
+  .modal-card { width: 95%; max-height: 90vh; }
+  .modal-card-body { overflow-y: auto; }
 }

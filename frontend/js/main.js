@@ -3,11 +3,13 @@ import { renderizarPerfiles, mostrarLoader, ocultarLoader, setupTheme } from './
 import { aplicarFiltros, limpiarFiltros, registrarEventosFiltros } from './filtros.js';
 import { abrirModalNuevo, abrirModalEditar, borrarPerfil } from './crud.js';
 
-// Usamos una función para capturar elementos de forma segura
+// Función para capturar elementos de forma segura
 const getEl = (id) => document.getElementById(id);
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // CAPTURA DENTRO DEL EVENTO
+    // =====================
+    // ELEMENTOS DEL DOM
+    // =====================
     const addProfileBtn = getEl('addProfileBtn');
     const clearFiltersBtn = getEl('clearFilters');
     const openLoginBtn = getEl('openLoginBtn');
@@ -18,29 +20,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     let perfiles = [];
 
     // =====================
-    // GESTIÓN DE AUTH (ULTRA SEGURA)
+    // AUTH
     // =====================
     function verificarAutenticacion() {
         const token = localStorage.getItem('token');
         
-        // El uso de ?. previene el error aunque el elemento no exista
         addProfileBtn?.classList.toggle('hidden', !token);
         logoutBtn?.classList.toggle('hidden', !token);
-        
-        // El login se oculta si hay token
         openLoginBtn?.classList.toggle('hidden', !!token);
     }
 
-    // =====================
-    // EVENTOS Y LÓGICA
-    // =====================
     async function cargarPerfiles() {
         try {
             mostrarLoader();
             perfiles = await obtenerPerfiles();
             actualizarVista();
         } catch (error) {
-            console.error("Error al conectar:", error.message);
+            console.error("Error al obtener perfiles:", error.message);
         } finally {
             ocultarLoader();
         }
@@ -55,16 +51,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         );
     }
 
-    // REGISTRO DE EVENTOS CON "?"
+    // =====================
+    // EVENTOS
+    // =====================
     addProfileBtn?.addEventListener('click', () => abrirModalNuevo(cargarPerfiles));
-    
-    // --- LÓGICA AGREGADA PARA LIMPIAR ---
+
     clearFiltersBtn?.addEventListener('click', () => {
-        console.log("Limpiando filtros...");
-        limpiarFiltros();   // 1. Borra el texto de los inputs (en filtros.js)
-        actualizarVista();  // 2. Refresca la lista para mostrar todos
+        limpiarFiltros();
+        actualizarVista();
     });
-    // ------------------------------------
 
     openLoginBtn?.addEventListener('click', () => {
         loginModal?.classList.remove('hidden');
@@ -81,9 +76,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         const pass = getEl('loginPass')?.value;
         try {
             const data = await login(email, pass);
-            localStorage.setItem('token', data.token);
-            location.reload(); 
-        } catch (err) { alert(err.message); }
+            if (data.token) {
+                localStorage.setItem('token', data.token);
+                verificarAutenticacion();
+                loginModal?.classList.add('hidden');
+                await cargarPerfiles();
+            } else {
+                alert(data.msg || 'Error al iniciar sesión');
+            }
+        } catch (err) {
+            alert("Error: " + err.message);
+        }
     });
 
     logoutBtn?.addEventListener('click', () => {
@@ -91,9 +94,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         location.reload();
     });
 
+    // Registrar eventos de filtros
+    registrarEventosFiltros(actualizarVista);
+
+    // =====================
     // INICIO
+    // =====================
     setupTheme();
     verificarAutenticacion();
     await cargarPerfiles();
-    registrarEventosFiltros(actualizarVista);
 });

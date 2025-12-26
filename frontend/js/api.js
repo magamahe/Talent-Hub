@@ -18,11 +18,36 @@ export async function crearPerfil(perfil) {
   const token = localStorage.getItem('token');
   const res = await fetch(`${BASE_URL}/perfiles`, {
     method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(perfil)
+  });
+  return res.json();
+}
+
+// FUNCIONES QUE FALTABAN
+export async function actualizarPerfil(id, perfil) {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${BASE_URL}/perfiles/${id}`, {
+    method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify(perfil)
+  });
+  return res.json();
+}
+
+export async function eliminarPerfil(id) {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${BASE_URL}/perfiles/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
   });
   return res.json();
 }
