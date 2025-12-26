@@ -4,9 +4,13 @@ import { renderizarPerfiles, mostrarLoader, ocultarLoader, setupTheme } from './
 import { aplicarFiltros, limpiarFiltros, registrarEventosFiltros } from './filtros.js';
 import { abrirModalNuevo, abrirModalEditar, borrarPerfil } from './crud.js';
 
+const BASE_URL = 'https://talent-hub-0n2p.onrender.com/api';
+
 document.addEventListener('DOMContentLoaded', async () => {
     let perfiles = [];
     let isLogged = !!localStorage.getItem('token');
+    let categorias = [];
+    let niveles = [];
 
     // --- 1. CONFIGURACIÓN DE TEMA (Dark Mode por defecto) ---
     const temaGuardado = localStorage.getItem('theme') || 'dark';
@@ -48,7 +52,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('openLoginBtn')?.classList.toggle('hidden', isLogged);
     }
 
-    // --- 3. EVENTOS LOGIN ---
+    // --- 3. CARGAR CATEGORÍAS Y NIVELES ---
+    async function cargarOpciones() {
+        try {
+            categorias = await fetch(`${BASE_URL}/categories`).then(r => r.json());
+            niveles = await fetch(`${BASE_URL}/levels`).then(r => r.json());
+
+            const categorySelect = document.getElementById('categoryInput');
+            const senioritySelect = document.getElementById('seniorityInput');
+
+            if (categorySelect) {
+                categorySelect.innerHTML = categorias.map(cat => `<option value="${cat._id}">${cat.name}</option>`).join('');
+            }
+            if (senioritySelect) {
+                senioritySelect.innerHTML = niveles.map(niv => `<option value="${niv._id}">${niv.name}</option>`).join('');
+            }
+        } catch (err) {
+            console.error("Error al cargar categorías o niveles:", err);
+        }
+    }
+
+    // --- 4. EVENTOS LOGIN ---
     document.getElementById('openLoginBtn')?.addEventListener('click', () => {
         const modal = document.getElementById('loginModal');
         if (modal) {
@@ -78,7 +102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // --- 4. BOTÓN SALIR ---
+    // --- 5. BOTÓN SALIR ---
     document.getElementById('logoutBtn')?.addEventListener('click', () => {
         localStorage.removeItem('token');
         isLogged = false;
@@ -86,20 +110,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         actualizarVista();
     });
 
-    // --- 5. BOTÓN NUEVO PERFIL ---
+    // --- 6. BOTÓN NUEVO PERFIL ---
     document.getElementById('addProfileBtn')?.addEventListener('click', () => {
         abrirModalNuevo(cargarPerfilesInicial);
     });
 
-    // --- 6. BOTÓN LIMPIAR FILTROS ---
+    // --- 7. BOTÓN LIMPIAR FILTROS ---
     document.getElementById('clearFilters')?.addEventListener('click', () => {
         limpiarFiltros();
         actualizarVista();
     });
 
-    // --- 7. INICIALIZACIÓN ---
+    // --- 8. INICIALIZACIÓN ---
     verificarAutenticacion();
     registrarEventosFiltros(actualizarVista);
+    await cargarOpciones();
     await cargarPerfilesInicial();
     setupTheme();
 });
