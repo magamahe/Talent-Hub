@@ -7,22 +7,31 @@ import { abrirModalNuevo, abrirModalEditar, borrarPerfil } from './crud.js';
 const getEl = (id) => document.getElementById(id);
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // =====================
+    // ELEMENTOS DEL DOM
+    // =====================
     const addProfileBtn = getEl('addProfileBtn');
     const clearFiltersBtn = getEl('clearFilters');
     const openLoginBtn = getEl('openLoginBtn');
     const logoutBtn = getEl('logoutBtn');
     const loginModal = getEl('loginModal');
     const doLoginBtn = getEl('doLogin');
+    const themeToggle = getEl('themeToggle');
+    const themeIcon = getEl('themeIcon');
 
     let perfiles = [];
-    let usuarioRol = null; // guardamos el rol del usuario logueado
+    let isLogged = false;
 
+    // =====================
+    // FUNCIONES AUX
+    // =====================
     function verificarAutenticacion() {
         const token = localStorage.getItem('token');
-        usuarioRol = token ? JSON.parse(atob(token.split('.')[1])).role : null;
-        addProfileBtn?.classList.toggle('hidden', usuarioRol !== 'admin');
-        logoutBtn?.classList.toggle('hidden', !token);
-        openLoginBtn?.classList.toggle('hidden', !!token);
+        isLogged = !!token;
+
+        addProfileBtn?.classList.toggle('hidden', !isLogged);
+        logoutBtn?.classList.toggle('hidden', !isLogged);
+        openLoginBtn?.classList.toggle('hidden', isLogged);
     }
 
     async function cargarPerfiles() {
@@ -41,25 +50,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         const perfilesFiltrados = aplicarFiltros(perfiles);
         renderizarPerfiles(
             perfilesFiltrados,
-            usuarioRol === 'admin' ? perfil => abrirModalEditar(perfil, cargarPerfiles) : null,
-            usuarioRol === 'admin' ? id => borrarPerfil(id, cargarPerfiles) : null
+            perfil => isLogged && abrirModalEditar(perfil, cargarPerfiles), // solo admin puede editar
+            id => isLogged && borrarPerfil(id, cargarPerfiles) // solo admin puede eliminar
         );
     }
 
-    // LOGIN
+    // =====================
+    // EVENTOS LOGIN
+    // =====================
     openLoginBtn?.addEventListener('click', () => {
-        loginModal?.classList.remove('hidden');
-        loginModal?.classList.add('flex');
+        if (loginModal) loginModal.classList.remove('hidden'), loginModal.classList.add('flex');
     });
 
     getEl('closeLogin')?.addEventListener('click', () => {
-        loginModal?.classList.add('hidden');
-        loginModal?.classList.remove('flex');
+        if (loginModal) loginModal.classList.add('hidden'), loginModal.classList.remove('flex');
     });
 
     doLoginBtn?.addEventListener('click', async () => {
-        const email = getEl('loginEmail')?.value;
-        const pass = getEl('loginPass')?.value;
+        const emailInput = getEl('loginEmail');
+        const passInput = getEl('loginPass');
+
+        if (!emailInput || !passInput) return alert('Formulario de login no encontrado');
+
+        const email = emailInput.value;
+        const pass = passInput.value;
+
         try {
             const data = await login(email, pass);
             if (data.token) {
@@ -77,11 +92,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     logoutBtn?.addEventListener('click', () => {
         localStorage.removeItem('token');
-        usuarioRol = null;
         location.reload();
     });
 
-    // BOTON NUEVO PERFIL Y FILTROS
+    // =====================
+    // EVENTOS PERFILES Y FILTROS
+    // =====================
     addProfileBtn?.addEventListener('click', () => abrirModalNuevo(cargarPerfiles));
     clearFiltersBtn?.addEventListener('click', () => {
         limpiarFiltros();
@@ -89,7 +105,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     registrarEventosFiltros(actualizarVista);
 
+    // =====================
+    // TOGGLE TEMA CLARO/OSCURO
+    // =====================
+    if (themeToggle && themeIcon) {
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('bg-gray-900');
+            document.body.classList.toggle('bg-gray-100');
+            document.body.classList.toggle('text-gray-100');
+            document.body.classList.toggle('text-gray-900');
+
+            const isDark = document.body.classList.contains('bg-gray-900');
+            themeIcon.className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+        });
+    }
+
+    // =====================
     // INICIO
+    // =====================
     setupTheme();
     verificarAutenticacion();
     await cargarPerfiles();
