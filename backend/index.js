@@ -6,27 +6,27 @@ require('dotenv').config();
 
 const app = express();
 
-// Middlewares
+// 🔥 CORS PRIMERO
 app.use(cors({
-  origin: [
-    'https://talent-hub-n6xb.onrender.com',
-    'http://localhost:3000',
-    'http://localhost:5173'
-  ],
+  origin: 'https://talent-hub-n6xb.onrender.com',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.options('*', cors({
+  origin: 'https://talent-hub-n6xb.onrender.com',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
 
-// Servir frontend
-app.use(express.static(path.join(__dirname, 'public')));
-
-// API routes
+// Rutas API
 app.use('/api/perfiles', require('./routes/perfilRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
 
-// Catch-all para frontend (MUY IMPORTANTE)
+// Frontend (si lo servís desde acá)
+app.use(express.static(path.join(__dirname, 'public')));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
