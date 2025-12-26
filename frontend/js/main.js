@@ -1,48 +1,46 @@
-// main.js
+// main.js - Versión Final Corregida
 import { obtenerPerfiles, login } from './api.js';
 import { renderizarPerfiles, mostrarLoader, ocultarLoader, setupTheme } from './ui.js';
 import { aplicarFiltros, limpiarFiltros, registrarEventosFiltros } from './filtros.js';
 import { abrirModalNuevo, abrirModalEditar, borrarPerfil } from './crud.js';
 
-const getEl = (id) => document.getElementById(id);
-
-// ... imports ...
-
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. CARGAR PERFILES PRIMERO (Prioridad absoluta)
-    // Lo ponemos al principio para que no dependa de nada más
     let perfiles = [];
     let isLogged = !!localStorage.getItem('token');
 
+    // --- 1. CONFIGURACIÓN DE TEMA (Dark Mode por defecto) ---
+    const temaGuardado = localStorage.getItem('theme') || 'dark';
+    document.body.classList.toggle('bg-gray-900', temaGuardado === 'dark');
+    document.body.classList.toggle('text-gray-100', temaGuardado === 'dark');
+
+    // --- 2. FUNCIONES DE CARGA Y VISTA ---
     async function cargarPerfilesInicial() {
         try {
             mostrarLoader();
-            const data = await obtenerPerfiles();
-            perfiles = data; 
+            perfiles = await obtenerPerfiles();
             actualizarVista();
         } catch (error) {
-            console.error("Error crítico al cargar perfiles:", error);
+            console.error("Error al cargar perfiles:", error);
         } finally {
             ocultarLoader();
         }
     }
 
     function actualizarVista() {
-        const perfilesFiltrados = aplicarFiltros(perfiles);
-        // Pasamos el estado isLogged para decidir si mostramos botones de CRUD
-        renderizarPerfiles(
-            perfilesFiltrados,
-            perfil => isLogged && abrirModalEditar(perfil, cargarPerfilesInicial),
-            id => isLogged && borrarPerfil(id, cargarPerfilesInicial)
-        );
+        // Envolvemos en try/catch para que si el buscador falla, los perfiles carguen igual
+        try {
+            const perfilesFiltrados = aplicarFiltros(perfiles);
+            renderizarPerfiles(
+                perfilesFiltrados,
+                perfil => isLogged && abrirModalEditar(perfil, cargarPerfilesInicial),
+                id => isLogged && borrarPerfil(id, cargarPerfilesInicial)
+            );
+        } catch (e) {
+            console.warn("Filtros fallidos, renderizando base:", e);
+            renderizarPerfiles(perfiles, /* ... */);
+        }
     }
 
-    // 2. CONFIGURAR TEMA (Dark mode por defecto)
-    const temaGuardado = localStorage.getItem('theme') || 'dark';
-    document.body.classList.toggle('bg-gray-900', temaGuardado === 'dark');
-    document.body.classList.toggle('text-gray-100', temaGuardado === 'dark');
-
-    // 3. VERIFICAR INTERFAZ ADMIN
     function verificarAutenticacion() {
         const token = localStorage.getItem('token');
         isLogged = !!token;
@@ -51,8 +49,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('openLoginBtn')?.classList.toggle('hidden', isLogged);
     }
 
-    // 4. REGISTRO DE EVENTOS SEGURO (Usando Optional Chaining)
-    // El login se procesa solo cuando se hace click, no al cargar
+    // --- 3. EVENTOS DE LOGIN (CORREGIDO) ---
+    // Botón para abrir el modal
+    document.getElementById('openLoginBtn')?.addEventListener('click', () => {
+        const modal = document.getElementById('loginModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex'); // Asegúrate de usar flex si es centrado
+        }
+    });
+
+    // Botón dentro del modal para ejecutar el login
     document.getElementById('doLogin')?.addEventListener('click', async () => {
         const email = document.getElementById('loginEmail')?.value;
         const pass = document.getElementById('loginPass')?.value;
@@ -63,17 +70,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             const data = await login(email, pass);
             if (data.token) {
                 localStorage.setItem('token', data.token);
+                // En lugar de recargar todo, actualizamos el estado y la interfaz
                 verificarAutenticacion();
                 document.getElementById('loginModal')?.classList.add('hidden');
-                await cargarPerfilesInicial(); // Recarga para mostrar botones de admin
+                await cargarPerfilesInicial(); 
+            } else {
+                alert(data.msg || "Credenciales incorrectas");
             }
         } catch (err) {
-            alert("Error: " + err.message);
+            alert("Error en el servidor");
         }
     });
 
-    // Inicialización
+    // --- 4. INICIALIZACIÓN ---
     verificarAutenticacion();
+    
+    // Registrar eventos de filtros pasando la función de callback
     registrarEventosFiltros(actualizarVista);
-    await cargarPerfilesInicial(); 
+    
+    // Ejecutar carga inicial
+    await cargarPerfilesInicial();
 });

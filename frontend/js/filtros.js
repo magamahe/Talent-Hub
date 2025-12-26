@@ -1,47 +1,34 @@
-// ============================
-// Filtros para perfiles corregidos
-// ============================
-
-// Eliminamos las constantes globales que causan el error de 'null' al inicio
-
+// filtros.js
 export function aplicarFiltros(perfiles) {
-  if (!perfiles) return [];
+    if (!perfiles) return [];
 
-  // Obtenemos los elementos dentro de la función para asegurar que existen
-  const searchInput = document.getElementById('searchInput');
-  const categoryFilter = document.getElementById('categoryFilter');
-  const levelFilter = document.getElementById('levelFilter');
+    // Buscamos los elementos justo al momento de filtrar
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const levelFilter = document.getElementById('levelFilter');
 
-  // Usamos el operador ?. y valores por defecto por si el HTML cambia
-  const texto = searchInput?.value.toLowerCase() || '';
-  const categoria = categoryFilter?.value || '';
-  const nivel = levelFilter?.value || '';
+    // Si no existen, devolvemos los perfiles sin filtrar en lugar de dar error
+    if (!searchInput || !categoryFilter || !levelFilter) return perfiles;
 
-  return perfiles.filter(perfil => {
-    const nombre = perfil.name?.toLowerCase() || '';
-    const titulo = perfil.title?.toLowerCase() || '';
+    const texto = searchInput.value.toLowerCase();
+    const categoria = categoryFilter.value;
+    const nivel = levelFilter.value;
 
-    const coincideTexto = nombre.includes(texto) || titulo.includes(texto);
-    const coincideCategoria = categoria === '' || (perfil.category?.name === categoria);
-    const coincideNivel = nivel === '' || (perfil.level?.name === nivel);
+    return perfiles.filter(perfil => {
+        const nombre = (perfil.name || '').toLowerCase();
+        const titulo = (perfil.title || '').toLowerCase();
 
-    return coincideTexto && coincideCategoria && coincideNivel;
-  });
-}
+        const coincideTexto = nombre.includes(texto) || titulo.includes(texto);
+        const coincideCategoria = categoria === '' || (perfil.category?.name === categoria);
+        const coincideNivel = nivel === '' || (perfil.level?.name === nivel);
 
-export function limpiarFiltros() {
-  const searchInput = document.getElementById('searchInput');
-  const categoryFilter = document.getElementById('categoryFilter');
-  const levelFilter = document.getElementById('levelFilter');
-
-  if (searchInput) searchInput.value = '';
-  if (categoryFilter) categoryFilter.value = '';
-  if (levelFilter) levelFilter.value = '';
+        return coincideTexto && coincideCategoria && coincideNivel;
+    });
 }
 
 export function registrarEventosFiltros(callback) {
-  // Aquí usamos el encadenamiento opcional para evitar errores si no existen los elementos
-  document.getElementById('searchInput')?.addEventListener('input', callback);
-  document.getElementById('categoryFilter')?.addEventListener('change', callback);
-  document.getElementById('levelFilter')?.addEventListener('change', callback);
+    // Es vital usar los mismos IDs que en el HTML
+    document.getElementById('searchInput')?.addEventListener('input', callback);
+    document.getElementById('categoryFilter')?.addEventListener('change', callback);
+    document.getElementById('levelFilter')?.addEventListener('change', callback);
 }
