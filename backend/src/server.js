@@ -1,5 +1,4 @@
 // backend/src/server.js
-
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
@@ -17,10 +16,12 @@ const app = express();
 // =====================
 // MIDDLEWARES
 // =====================
-// Permitir cualquier origen para desarrollo
+// Para desarrollo: permitir cualquier origen
 app.use(cors());
-// Para producción, podés limitar:
-// app.use(cors({ origin: 'https://tu-frontend.onrender.com' }));
+
+// Para producción: limitar a tu frontend
+// const allowedOrigins = ['https://tu-frontend-render.onrender.com'];
+// app.use(cors({ origin: allowedOrigins }));
 
 app.use(express.json());
 
@@ -31,13 +32,13 @@ app.use('/api/perfiles', perfilRoutes);
 app.use('/api/auth', authRoutes);
 
 // =====================
-// SERVIR FRONTEND
+// SERVIR FRONTEND (SPA)
 // =====================
-app.use(express.static(path.join(__dirname, '../../frontend')));
+const frontendPath = path.join(__dirname, '../../frontend');
+app.use(express.static(frontendPath));
 
-// Para rutas desconocidas (SPA)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../frontend/index.html'));
+  res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 // =====================
