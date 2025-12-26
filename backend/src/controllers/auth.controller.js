@@ -10,15 +10,16 @@ import jwt from 'jsonwebtoken';
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log('Login body:', req.body);
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: 'Credenciales inválidas' });
+      return res.status(401).json({ msg: 'Credenciales inválidas' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Credenciales inválidas' });
+      return res.status(401).json({ msg: 'Credenciales inválidas' });
     }
 
     const token = jwt.sign(
@@ -36,6 +37,7 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error en login' });
+    console.error('Error login:', error);
+    res.status(500).json({ msg: 'Error en login' });
   }
 };
