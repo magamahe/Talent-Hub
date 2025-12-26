@@ -10,6 +10,7 @@ async function fetchJson(url, options = {}) {
   return res.json();
 }
 
+// PERFILES
 export async function obtenerPerfiles() {
   return fetchJson(`${BASE_URL}/perfiles`);
 }
@@ -52,4 +53,14 @@ export async function eliminarPerfil(id) {
     method: 'DELETE',
     headers: { 'Authorization': `Bearer ${token}` }
   });
+}
+
+// CATEGORÍAS
+export async function obtenerCategorias() {
+  return fetchJson(`${BASE_URL}/categorias`);
+}
+
+// NIVELES
+export async function obtenerLevels() {
+  return fetchJson(`${BASE_URL}/levels`);
 }

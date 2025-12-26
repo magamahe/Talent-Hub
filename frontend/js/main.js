@@ -1,10 +1,8 @@
 // main.js
-import { obtenerPerfiles, login } from './api.js';
+import { obtenerPerfiles, login, obtenerCategorias, obtenerLevels } from './api.js';
 import { renderizarPerfiles, mostrarLoader, ocultarLoader, setupTheme } from './ui.js';
 import { aplicarFiltros, limpiarFiltros, registrarEventosFiltros } from './filtros.js';
 import { abrirModalNuevo, abrirModalEditar, borrarPerfil } from './crud.js';
-
-const BASE_URL = 'https://talent-hub-0n2p.onrender.com/api';
 
 document.addEventListener('DOMContentLoaded', async () => {
     let perfiles = [];
@@ -55,17 +53,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 3. CARGAR CATEGORÍAS Y NIVELES ---
     async function cargarOpciones() {
         try {
-            categorias = await fetch(`${BASE_URL}/categories`).then(r => r.json());
-            niveles = await fetch(`${BASE_URL}/levels`).then(r => r.json());
+            categorias = await obtenerCategorias();
+            niveles = await obtenerLevels();
 
             const categorySelect = document.getElementById('categoryInput');
             const senioritySelect = document.getElementById('seniorityInput');
 
             if (categorySelect) {
-                categorySelect.innerHTML = categorias.map(cat => `<option value="${cat._id}">${cat.name}</option>`).join('');
+                categorySelect.innerHTML = '<option value="">Seleccione...</option>' +
+                    categorias.map(cat => `<option value="${cat._id}">${cat.name}</option>`).join('');
             }
             if (senioritySelect) {
-                senioritySelect.innerHTML = niveles.map(niv => `<option value="${niv._id}">${niv.name}</option>`).join('');
+                senioritySelect.innerHTML = '<option value="">Seleccione...</option>' +
+                    niveles.map(niv => `<option value="${niv._id}">${niv.name}</option>`).join('');
             }
         } catch (err) {
             console.error("Error al cargar categorías o niveles:", err);
