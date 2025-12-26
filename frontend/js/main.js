@@ -6,41 +6,22 @@ import { abrirModalNuevo, abrirModalEditar, borrarPerfil } from './crud.js';
 
 const getEl = (id) => document.getElementById(id);
 
+// ... imports ...
+
 document.addEventListener('DOMContentLoaded', async () => {
-    // =====================
-    // ELEMENTOS DEL DOM
-    // =====================
-    const addProfileBtn = getEl('addProfileBtn');
-    const clearFiltersBtn = getEl('clearFilters');
-    const openLoginBtn = getEl('openLoginBtn');
-    const logoutBtn = getEl('logoutBtn');
-    const loginModal = getEl('loginModal');
-    const doLoginBtn = getEl('doLogin');
-    const themeToggle = getEl('themeToggle');
-    const themeIcon = getEl('themeIcon');
-
+    // 1. CARGAR PERFILES PRIMERO (Prioridad absoluta)
+    // Lo ponemos al principio para que no dependa de nada más
     let perfiles = [];
-    let isLogged = false;
+    let isLogged = !!localStorage.getItem('token');
 
-    // =====================
-    // FUNCIONES AUX
-    // =====================
-    function verificarAutenticacion() {
-        const token = localStorage.getItem('token');
-        isLogged = !!token;
-
-        addProfileBtn?.classList.toggle('hidden', !isLogged);
-        logoutBtn?.classList.toggle('hidden', !isLogged);
-        openLoginBtn?.classList.toggle('hidden', isLogged);
-    }
-
-    async function cargarPerfiles() {
+    async function cargarPerfilesInicial() {
         try {
             mostrarLoader();
-            perfiles = await obtenerPerfiles();
+            const data = await obtenerPerfiles();
+            perfiles = data; 
             actualizarVista();
         } catch (error) {
-            console.error("Error al obtener perfiles:", error.message);
+            console.error("Error crítico al cargar perfiles:", error);
         } finally {
             ocultarLoader();
         }
@@ -48,82 +29,51 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function actualizarVista() {
         const perfilesFiltrados = aplicarFiltros(perfiles);
+        // Pasamos el estado isLogged para decidir si mostramos botones de CRUD
         renderizarPerfiles(
             perfilesFiltrados,
-            perfil => isLogged && abrirModalEditar(perfil, cargarPerfiles), // solo admin puede editar
-            id => isLogged && borrarPerfil(id, cargarPerfiles) // solo admin puede eliminar
+            perfil => isLogged && abrirModalEditar(perfil, cargarPerfilesInicial),
+            id => isLogged && borrarPerfil(id, cargarPerfilesInicial)
         );
     }
 
-    // =====================
-    // EVENTOS LOGIN
-    // =====================
-    openLoginBtn?.addEventListener('click', () => {
-        if (loginModal) loginModal.classList.remove('hidden'), loginModal.classList.add('flex');
-    });
+    // 2. CONFIGURAR TEMA (Dark mode por defecto)
+    const temaGuardado = localStorage.getItem('theme') || 'dark';
+    document.body.classList.toggle('bg-gray-900', temaGuardado === 'dark');
+    document.body.classList.toggle('text-gray-100', temaGuardado === 'dark');
 
-    getEl('closeLogin')?.addEventListener('click', () => {
-        if (loginModal) loginModal.classList.add('hidden'), loginModal.classList.remove('flex');
-    });
+    // 3. VERIFICAR INTERFAZ ADMIN
+    function verificarAutenticacion() {
+        const token = localStorage.getItem('token');
+        isLogged = !!token;
+        document.getElementById('addProfileBtn')?.classList.toggle('hidden', !isLogged);
+        document.getElementById('logoutBtn')?.classList.toggle('hidden', !isLogged);
+        document.getElementById('openLoginBtn')?.classList.toggle('hidden', isLogged);
+    }
 
-    doLoginBtn?.addEventListener('click', async () => {
-        const emailInput = getEl('loginEmail');
-        const passInput = getEl('loginPass');
+    // 4. REGISTRO DE EVENTOS SEGURO (Usando Optional Chaining)
+    // El login se procesa solo cuando se hace click, no al cargar
+    document.getElementById('doLogin')?.addEventListener('click', async () => {
+        const email = document.getElementById('loginEmail')?.value;
+        const pass = document.getElementById('loginPass')?.value;
 
-        if (!emailInput || !passInput) return alert('Formulario de login no encontrado');
-
-        const email = emailInput.value;
-        const pass = passInput.value;
+        if (!email || !pass) return alert("Completa los campos");
 
         try {
             const data = await login(email, pass);
             if (data.token) {
                 localStorage.setItem('token', data.token);
                 verificarAutenticacion();
-                loginModal?.classList.add('hidden');
-                await cargarPerfiles();
-            } else {
-                alert(data.msg || 'Error al iniciar sesión');
+                document.getElementById('loginModal')?.classList.add('hidden');
+                await cargarPerfilesInicial(); // Recarga para mostrar botones de admin
             }
         } catch (err) {
             alert("Error: " + err.message);
         }
     });
 
-    logoutBtn?.addEventListener('click', () => {
-        localStorage.removeItem('token');
-        location.reload();
-    });
-
-    // =====================
-    // EVENTOS PERFILES Y FILTROS
-    // =====================
-    addProfileBtn?.addEventListener('click', () => abrirModalNuevo(cargarPerfiles));
-    clearFiltersBtn?.addEventListener('click', () => {
-        limpiarFiltros();
-        actualizarVista();
-    });
-    registrarEventosFiltros(actualizarVista);
-
-    // =====================
-    // TOGGLE TEMA CLARO/OSCURO
-    // =====================
-    if (themeToggle && themeIcon) {
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('bg-gray-900');
-            document.body.classList.toggle('bg-gray-100');
-            document.body.classList.toggle('text-gray-100');
-            document.body.classList.toggle('text-gray-900');
-
-            const isDark = document.body.classList.contains('bg-gray-900');
-            themeIcon.className = isDark ? 'fas fa-moon' : 'fas fa-sun';
-        });
-    }
-
-    // =====================
-    // INICIO
-    // =====================
-    setupTheme();
+    // Inicialización
     verificarAutenticacion();
-    await cargarPerfiles();
+    registrarEventosFiltros(actualizarVista);
+    await cargarPerfilesInicial(); 
 });

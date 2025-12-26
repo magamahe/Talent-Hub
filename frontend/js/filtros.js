@@ -1,17 +1,21 @@
 // ============================
-// Filtros para perfiles
+// Filtros para perfiles corregidos
 // ============================
 
-const searchInput = document.getElementById('searchInput');
-const categoryFilter = document.getElementById('categoryFilter');
-const levelFilter = document.getElementById('levelFilter'); // renombramos seniority a level
+// Eliminamos las constantes globales que causan el error de 'null' al inicio
 
 export function aplicarFiltros(perfiles) {
   if (!perfiles) return [];
 
-  const texto = searchInput.value.toLowerCase();
-  const categoria = categoryFilter.value;
-  const nivel = levelFilter.value;
+  // Obtenemos los elementos dentro de la función para asegurar que existen
+  const searchInput = document.getElementById('searchInput');
+  const categoryFilter = document.getElementById('categoryFilter');
+  const levelFilter = document.getElementById('levelFilter');
+
+  // Usamos el operador ?. y valores por defecto por si el HTML cambia
+  const texto = searchInput?.value.toLowerCase() || '';
+  const categoria = categoryFilter?.value || '';
+  const nivel = levelFilter?.value || '';
 
   return perfiles.filter(perfil => {
     const nombre = perfil.name?.toLowerCase() || '';
@@ -26,13 +30,18 @@ export function aplicarFiltros(perfiles) {
 }
 
 export function limpiarFiltros() {
-  searchInput.value = '';
-  categoryFilter.value = '';
-  levelFilter.value = '';
+  const searchInput = document.getElementById('searchInput');
+  const categoryFilter = document.getElementById('categoryFilter');
+  const levelFilter = document.getElementById('levelFilter');
+
+  if (searchInput) searchInput.value = '';
+  if (categoryFilter) categoryFilter.value = '';
+  if (levelFilter) levelFilter.value = '';
 }
 
 export function registrarEventosFiltros(callback) {
-  searchInput?.addEventListener('input', callback);
-  categoryFilter?.addEventListener('change', callback);
-  levelFilter?.addEventListener('change', callback);
+  // Aquí usamos el encadenamiento opcional para evitar errores si no existen los elementos
+  document.getElementById('searchInput')?.addEventListener('input', callback);
+  document.getElementById('categoryFilter')?.addEventListener('change', callback);
+  document.getElementById('levelFilter')?.addEventListener('change', callback);
 }
