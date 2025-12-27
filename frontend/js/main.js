@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let categorias = [];
     let niveles = [];
 
-    // --- 1. CONFIGURACIÓN DE TEMA (Dark Mode por defecto) ---
+    // --- 1. CONFIGURACIÓN DE TEMA ---
     const temaGuardado = localStorage.getItem('theme') || 'dark';
     document.body.classList.toggle('bg-gray-900', temaGuardado === 'dark');
     document.body.classList.toggle('text-gray-100', temaGuardado === 'dark');
@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             categorias = await obtenerCategorias();
             niveles = await obtenerLevels();
 
+            // Modal selects
             const categorySelect = document.getElementById('categoryInput');
             const senioritySelect = document.getElementById('seniorityInput');
 
@@ -68,6 +69,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 senioritySelect.innerHTML = '<option value="">Seleccione...</option>' +
                     niveles.map(niv => `<option value="${niv._id}">${niv.name}</option>`).join('');
             }
+
+            // Filter selects
+            const categoryFilter = document.getElementById('categoryFilter');
+            const levelFilter = document.getElementById('seniorityFilter');
+
+            if (categoryFilter) {
+                categoryFilter.innerHTML = '<option value="">Todas...</option>' +
+                    categorias.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('');
+            }
+
+            if (levelFilter) {
+                levelFilter.innerHTML = '<option value="">Todos...</option>' +
+                    niveles.map(niv => `<option value="${niv.name}">${niv.name}</option>`).join('');
+            }
+
         } catch (err) {
             console.error("Error al cargar categorías o niveles:", err);
             alert("No se pudieron cargar categorías o niveles. Verifica tu backend.");
