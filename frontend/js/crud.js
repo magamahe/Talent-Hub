@@ -62,8 +62,8 @@ async function guardarPerfil() {
   const perfil = {
     name: nameInput.value.trim(),
     title: titleInput.value.trim(),
-    category: categoryInput.value,
-    level: seniorityInput.value,
+    category: categoryInput.value.trim(), // asegurarse de enviar el _id
+    level: seniorityInput.value.trim(),  // asegurarse de enviar el _id
     avatar: avatarInput.value.trim() || 'https://i.pravatar.cc/150'
   };
 

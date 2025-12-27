@@ -63,12 +63,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 categorySelect.innerHTML = '<option value="">Seleccione...</option>' +
                     categorias.map(cat => `<option value="${cat._id}">${cat.name}</option>`).join('');
             }
+
             if (senioritySelect) {
                 senioritySelect.innerHTML = '<option value="">Seleccione...</option>' +
                     niveles.map(niv => `<option value="${niv._id}">${niv.name}</option>`).join('');
             }
         } catch (err) {
             console.error("Error al cargar categorías o niveles:", err);
+            alert("No se pudieron cargar categorías o niveles. Verifica tu backend.");
         }
     }
 
@@ -94,6 +96,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 verificarAutenticacion();
                 document.getElementById('loginModal')?.classList.add('hidden');
                 await cargarPerfilesInicial();
+                await cargarOpciones();
             } else {
                 alert(data.msg || "Credenciales incorrectas");
             }
