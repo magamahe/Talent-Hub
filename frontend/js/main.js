@@ -7,15 +7,13 @@ import { abrirModalNuevo, abrirModalEditar, borrarPerfil } from './crud.js';
 document.addEventListener('DOMContentLoaded', async () => {
     let perfiles = [];
     let role = localStorage.getItem('role') || 'user';
-    let categorias = [];
-    let niveles = [];
 
-    // --- Tema ---
+    // --- 1. CONFIGURACIÓN DE TEMA (Dark Mode por defecto) ---
     const temaGuardado = localStorage.getItem('theme') || 'dark';
     document.body.classList.toggle('bg-gray-900', temaGuardado === 'dark');
     document.body.classList.toggle('text-gray-100', temaGuardado === 'dark');
 
-    // --- Cargar perfiles ---
+    // --- 2. FUNCIONES DE CARGA Y VISTA ---
     async function cargarPerfilesInicial() {
         try {
             mostrarLoader();
@@ -28,7 +26,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // --- Actualizar vista ---
     function actualizarVista() {
         try {
             const perfilesFiltrados = aplicarFiltros(perfiles);
@@ -43,7 +40,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // --- Verificar auth ---
     function verificarAutenticacion() {
         const token = localStorage.getItem('token');
         role = localStorage.getItem('role') || 'user';
@@ -53,38 +49,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('openLoginBtn')?.classList.toggle('hidden', !!token);
     }
 
-    // --- Cargar categorías y niveles ---
+    // --- 3. CARGAR CATEGORÍAS Y NIVELES ---
     async function cargarOpciones() {
         try {
-            categorias = await obtenerCategorias();
-            niveles = await obtenerLevels();
+            const categorias = await obtenerCategorias();
+            const niveles = await obtenerLevels();
+
+            const categorySelect = document.getElementById('categoryInput');
+            const senioritySelect = document.getElementById('seniorityInput');
+
+            if (categorySelect) {
+                categorySelect.innerHTML = '<option value="">Seleccione...</option>' +
+                    categorias.map(cat => `<option value="${cat._id}">${cat.name}</option>`).join('');
+            }
+
+            if (senioritySelect) {
+                senioritySelect.innerHTML = '<option value="">Seleccione...</option>' +
+                    niveles.map(niv => `<option value="${niv._id}">${niv.name}</option>`).join('');
+            }
         } catch (err) {
             console.error("Error al cargar categorías o niveles:", err);
             alert("No se pudieron cargar categorías o niveles. Verifica tu backend.");
         }
     }
 
-    // --- Llenar selects en modal ---
-    function llenarSelects() {
-        const categorySelect = document.getElementById('categoryInput');
-        const senioritySelect = document.getElementById('seniorityInput');
-
-        if (categorySelect) {
-            categorySelect.innerHTML = '<option value="">Seleccione...</option>' +
-                categorias.map(cat => `<option value="${cat._id}">${cat.name}</option>`).join('');
-        }
-
-        if (senioritySelect) {
-            senioritySelect.innerHTML = '<option value="">Seleccione...</option>' +
-                niveles.map(niv => `<option value="${niv._id}">${niv.name}</option>`).join('');
-        }
-    }
-
-    // --- Eventos login ---
+    // --- 4. EVENTOS LOGIN ---
     document.getElementById('openLoginBtn')?.addEventListener('click', () => {
         const modal = document.getElementById('loginModal');
-        modal?.classList.remove('hidden');
-        modal?.classList.add('flex');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
     });
 
     document.getElementById('doLogin')?.addEventListener('click', async () => {
@@ -100,8 +95,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 localStorage.setItem('role', data.user.role || 'user');
                 verificarAutenticacion();
                 document.getElementById('loginModal')?.classList.add('hidden');
-                await cargarOpciones();
                 await cargarPerfilesInicial();
+                await cargarOpciones();
             } else {
                 alert(data.msg || "Credenciales incorrectas");
             }
@@ -110,7 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // --- Logout ---
+    // --- 5. BOTÓN SALIR ---
     document.getElementById('logoutBtn')?.addEventListener('click', () => {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
@@ -119,19 +114,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         actualizarVista();
     });
 
-    // --- Nuevo perfil ---
+    // --- 6. BOTÓN NUEVO PERFIL ---
     document.getElementById('addProfileBtn')?.addEventListener('click', () => {
-        llenarSelects(); // <--- llenar selects antes de abrir modal
         abrirModalNuevo(cargarPerfilesInicial);
     });
 
-    // --- Limpiar filtros ---
+    // --- 7. BOTÓN LIMPIAR FILTROS ---
     document.getElementById('clearFilters')?.addEventListener('click', () => {
         limpiarFiltros();
         actualizarVista();
     });
 
-    // --- Inicialización ---
+    // --- 8. INICIALIZACIÓN ---
     verificarAutenticacion();
     registrarEventosFiltros(actualizarVista);
     await cargarOpciones();
