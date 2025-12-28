@@ -69,6 +69,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // --- 3. CARGAR CATEGORÍAS Y NIVELES ---
+  function cargarSelect(select, items, placeholder) {
+    if (!select) return;
+
+    select.innerHTML = `<option value="">${placeholder}</option>`;
+    items.forEach((item) => {
+      const option = document.createElement("option");
+      option.value = item._id;
+      option.textContent = item.name;
+      select.appendChild(option);
+    });
+  }
+
   async function cargarOpciones() {
     try {
       const categorias = await obtenerCategorias();
