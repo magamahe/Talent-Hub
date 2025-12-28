@@ -1,6 +1,3 @@
-// api.js
-const BASE_URL = 'https://talent-hub-m4t8.onrender.com/api';
-
 async function fetchJson(url, options = {}) {
   const res = await fetch(url, options);
   if (!res.ok) {
@@ -10,58 +7,46 @@ async function fetchJson(url, options = {}) {
   return res.json();
 }
 
-// PERFILES
-export async function obtenerPerfiles() {
-  return fetchJson(`${BASE_URL}/perfiles`);
-}
+// PERFIL
+export const obtenerPerfiles = () => fetchJson('/api/perfiles');
 
-export async function login(email, password) {
-  return fetchJson(`${BASE_URL}/auth/login`, {
+// AUTH
+export const login = (email, password) =>
+  fetchJson('/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password })
   });
-}
 
-export async function crearPerfil(perfil) {
-  const token = localStorage.getItem('token');
-  return fetchJson(`${BASE_URL}/perfiles`, {
+// CRUD
+export const crearPerfil = (perfil) =>
+  fetchJson('/api/perfiles', {
     method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
+    headers: authHeaders(),
     body: JSON.stringify(perfil)
   });
-}
 
-export async function actualizarPerfil(id, perfil) {
-  const token = localStorage.getItem('token');
-  return fetchJson(`${BASE_URL}/perfiles/${id}`, {
+export const actualizarPerfil = (id, perfil) =>
+  fetchJson(`/api/perfiles/${id}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
+    headers: authHeaders(),
     body: JSON.stringify(perfil)
   });
-}
 
-export async function eliminarPerfil(id) {
-  const token = localStorage.getItem('token');
-  return fetchJson(`${BASE_URL}/perfiles/${id}`, {
+export const eliminarPerfil = (id) =>
+  fetchJson(`/api/perfiles/${id}`, {
     method: 'DELETE',
-    headers: { 'Authorization': `Bearer ${token}` }
+    headers: authHeaders()
   });
+
+// CATEGORÍAS / LEVELS
+export const obtenerCategorias = () => fetchJson('/api/categories');
+export const obtenerLevels = () => fetchJson('/api/levels');
+
+function authHeaders() {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  };
 }
-
-// CATEGORÍAS
-
-export async function obtenerCategorias() {
-  return fetchJson(`${BASE_URL}/categories`);
-}
-
-export async function obtenerLevels() {
-  return fetchJson(`${BASE_URL}/levels`);
-}
-

@@ -1,4 +1,3 @@
-// backend/src/server.js
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -11,7 +10,7 @@ import { fileURLToPath } from 'url';
 // Rutas
 import perfilRoutes from './routes/profiles.routes.js';
 import authRoutes from './routes/auth.routes.js';
-import categoryRoutes from './routes/categoy.routes.js';
+import categoryRoutes from './routes/category.routes.js'; // ✅ FIX
 import levelRoutes from './routes/level.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -22,16 +21,14 @@ const app = express();
 // =====================
 // MIDDLEWARES
 // =====================
-// Permitir requests desde tu frontend (producción)
 app.use(cors({
-  origin: 'https://talent-hub-m4t8.onrender.com/', // reemplaza con tu frontend si cambia
+  origin: 'https://talent-hub-m4t8.onrender.com', // ✅ sin slash
   credentials: true
 }));
 
 app.use(express.json());
 
-
-// Middleware temporal de debug (opcional)
+// Debug
 app.use('/api', (req, res, next) => {
   console.log('Request API:', req.method, req.originalUrl);
   next();
@@ -46,26 +43,22 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/levels', levelRoutes);
 
 // =====================
-// SERVIR FRONTEND (SPA)
+// FRONTEND
 // =====================
 const frontendPath = path.join(__dirname, '../../frontend');
 app.use(express.static(frontendPath));
 
-// Todas las demás rutas servirán index.html (para SPA)
 app.get('*', (req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 // =====================
-// CONEXIÓN MONGO
+// MONGO
 // =====================
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/profilesdb';
-mongoose.connect(MONGO_URI)
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB conectado'))
-  .catch(err => console.error('Error MongoDB:', err));
+  .catch(err => console.error(err));
 
-// =====================
-// INICIO SERVIDOR
 // =====================
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
